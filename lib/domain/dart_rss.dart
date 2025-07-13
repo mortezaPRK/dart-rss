@@ -6,20 +6,53 @@ import 'package:xml/xml.dart';
 
 class WebFeed {
   static WebFeed fromXmlString(String xmlString) {
-    final rssVersion = detectRssVersion(xmlString);
+    final document = XmlDocument.parse(xmlString);
+    return WebFeed.fromXmlDocument(document);
+  }
+
+  static WebFeed fromXmlDocument(XmlDocument document) {
+    final rssVersion = detectRssVersionFromDocument(document);
     switch (rssVersion) {
       case RssVersion.rss1:
-        final rss1Feed = Rss1Feed.parse(xmlString);
+        final rss1Feed = Rss1Feed.parseFromXml(document);
         return WebFeed.fromRss1(rss1Feed);
       case RssVersion.rss2:
-        final rss2Feed = RssFeed.parse(xmlString);
+        final rss2Feed = RssFeed.parseFromXml(document);
         return WebFeed.fromRss2(rss2Feed);
       case RssVersion.atom:
-        final atomFeed = AtomFeed.parse(xmlString);
+        final atomFeed = AtomFeed.parseFromXml(document);
         return WebFeed.fromAtom(atomFeed);
       case RssVersion.unknown:
-        throw Error.safeToString('Invalid XML String? We cannot detect RSS/Atom version.');
+        throw Error.safeToString(
+            'Invalid XML String? We cannot detect RSS/Atom version.');
     }
+  }
+
+  static RssVersion detectRssVersionFromDocument(XmlDocument document) {
+    if (document.findAllElements('rdf:RDF').isNotEmpty) {
+      return RssVersion.rss1;
+    }
+
+    if (document
+            .findAllElements('rss')
+            .firstOrNull
+            ?.getAttribute('version')
+            ?.contains('2') ==
+        true) {
+      return RssVersion.rss2;
+    }
+
+    if (document
+            .findAllElements('feed')
+            .firstOrNull
+            ?.getAttribute('xmlns')
+            ?.toLowerCase()
+            .contains('atom') ==
+        true) {
+      return RssVersion.atom;
+    }
+
+    return RssVersion.unknown;
   }
 
   static WebFeed fromRss1(Rss1Feed rss1feed) {
@@ -52,7 +85,8 @@ class WebFeed {
             (item) => WebFeedItem(
               title: item.title ?? item.dc?.title ?? '',
               body: item.description ?? item.dc?.description ?? '',
-              updated: SafeParseDateTime.safeParse(item.pubDate) ?? SafeParseDateTime.safeParse(item.dc?.date),
+              updated: SafeParseDateTime.safeParse(item.pubDate) ??
+                  SafeParseDateTime.safeParse(item.dc?.date),
               links: [item.link],
             ),
           )
@@ -71,7 +105,8 @@ class WebFeed {
             (item) => WebFeedItem(
               title: item.title ?? '',
               body: item.summary ?? item.content ?? '',
-              updated: SafeParseDateTime.safeParse(item.updated) ?? SafeParseDateTime.safeParse(item.published),
+              updated: SafeParseDateTime.safeParse(item.updated) ??
+                  SafeParseDateTime.safeParse(item.published),
               links: item.links.map((atomLink) => atomLink.href).toList(),
             ),
           )
@@ -85,24 +120,8 @@ class WebFeed {
   }
 
   static RssVersion detectRssVersion(String xmlString) {
-    final xmlDoc = xml.XmlDocument.parse(xmlString);
-    final rdfRefs = xmlDoc.findAllElements('rdf:RDF');
-    final rssRefs = xmlDoc.findAllElements('rss');
-    final feedRefs = xmlDoc.findAllElements('feed');
-
-    bool? ver = false;
-    bool? xmlns = false;
-    ver = rssRefs.isEmpty ? false : rssRefs.first.getAttribute('version')?.contains('2');
-    xmlns = feedRefs.isEmpty ? false : feedRefs.first.getAttribute('xmlns')?.toLowerCase().contains('atom');
-
-    if (rdfRefs.isNotEmpty) {
-      return RssVersion.rss1;
-    } else if (rssRefs.isNotEmpty && ver != null && ver) {
-      return RssVersion.rss2;
-    } else if (feedRefs.isNotEmpty && xmlns != null && xmlns) {
-      return RssVersion.atom;
-    }
-    return RssVersion.unknown;
+    final document = XmlDocument.parse(xmlString);
+    return detectRssVersionFromDocument(document);
   }
 
   const WebFeed({
@@ -128,7 +147,8 @@ class WebFeed {
       case RssVersion.atom:
         return _toAtomXml();
       case RssVersion.unknown:
-        throw Exception("Can't serialize RSS to XML because the RSS version is unknown.");
+        throw Exception(
+            "Can't serialize RSS to XML because the RSS version is unknown.");
     }
   }
 

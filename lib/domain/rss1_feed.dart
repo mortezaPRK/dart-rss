@@ -8,6 +8,10 @@ import 'package:xml/xml.dart';
 class Rss1Feed {
   factory Rss1Feed.parse(String xmlString) {
     final document = XmlDocument.parse(xmlString);
+    return Rss1Feed.parseFromXml(document);
+  }
+
+  factory Rss1Feed.parseFromXml(XmlDocument document) {
     XmlElement rdfElement;
     try {
       rdfElement = document.findAllElements('rdf:RDF').first;
@@ -20,8 +24,12 @@ class Rss1Feed {
       title: findElementOrNull(rdfElement, 'title')?.innerText,
       link: findElementOrNull(rdfElement, 'link')?.innerText,
       description: findElementOrNull(rdfElement, 'description')?.innerText,
-      items: rdfElement.findElements('item').map((element) => Rss1Item.parse(element)).toList(),
-      image: findElementOrNull(rdfElement, 'image')?.getAttribute('rdf:resource'),
+      items: rdfElement
+          .findElements('item')
+          .map((element) => Rss1Item.parse(element))
+          .toList(),
+      image:
+          findElementOrNull(rdfElement, 'image')?.getAttribute('rdf:resource'),
       updatePeriod: _parseUpdatePeriod(
         findElementOrNull(rdfElement, 'sy:updatePeriod')?.innerText,
       ),
@@ -31,7 +39,9 @@ class Rss1Feed {
       updateBase: parseDateTime(
         findElementOrNull(rdfElement, 'sy:updateBase')?.innerText,
       ),
-      dc: channel.isEmpty ? null : DublinCore.parse(rdfElement.findElements('channel').first),
+      dc: channel.isEmpty
+          ? null
+          : DublinCore.parse(rdfElement.findElements('channel').first),
     );
   }
 

@@ -3,7 +3,21 @@ import 'dart:core';
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
-XmlElement? findElementOrNull(XmlElement element, String name, {String? namespace}) {
+const trueValues = {'yes', 'true'};
+
+const dateFormatPatterns = [
+  'EEE, d MMM yyyy HH:mm:ss Z',
+];
+
+final parsers = [
+  DateTime.parse,
+  ...dateFormatPatterns
+      .map((pattern) => DateFormat(pattern))
+      .map((parser) => parser.parse),
+];
+
+XmlElement? findElementOrNull(XmlElement element, String name,
+    {String? namespace}) {
   try {
     return element.findAllElements(name, namespace: namespace).first;
   } on StateError {
@@ -11,7 +25,8 @@ XmlElement? findElementOrNull(XmlElement element, String name, {String? namespac
   }
 }
 
-List<XmlElement>? findAllDirectElementsOrNull(XmlElement element, String name, {String? namespace}) {
+List<XmlElement>? findAllDirectElementsOrNull(XmlElement element, String name,
+    {String? namespace}) {
   try {
     return element.findElements(name, namespace: namespace).toList();
   } on StateError {
@@ -24,39 +39,29 @@ bool? parseBoolLiteral(XmlElement element, String tagName) {
   if (v == null) {
     return null;
   }
-  return ['yes', 'true'].contains(v);
+  return trueValues.contains(v);
 }
 
 bool? parseBool(String? v) {
   if (v == null) {
     return null;
   }
-  return ['yes', 'true'].contains(v);
+  return trueValues.contains(v);
 }
 
 extension SafeParseDateTime on DateTime {
   static DateTime? safeParse(String? str) {
-    if (str == null) {
+    final trimmedDate = str?.trim();
+    if (trimmedDate == null || trimmedDate.isEmpty) {
       return null;
     }
 
-    const dateFormatPatterns = [
-      'EEE, d MMM yyyy HH:mm:ss Z',
-    ];
-
-    // DateTime.parse returns null if the input has
-    // trailing spaces. Remove the spaces to avoid that.
-    final trimmedDate = str.trim();
-    try {
-      return DateTime.parse(trimmedDate);
-    } catch (_) {
-      for (final pattern in dateFormatPatterns) {
-        try {
-          final format = DateFormat(pattern);
-          return format.parse(trimmedDate);
-        } catch (_) {}
-      }
+    for (final parser in parsers) {
+      try {
+        return parser(trimmedDate);
+      } catch (_) {}
     }
+
     return null;
   }
 }

@@ -14,6 +14,10 @@ import 'package:dart_rss/domain/rss_itunes.dart';
 class RssFeed {
   factory RssFeed.parse(String xmlString) {
     final document = XmlDocument.parse(xmlString);
+    return RssFeed.parseFromXml(document);
+  }
+
+  factory RssFeed.parseFromXml(XmlDocument document) {
     XmlElement channelElement;
     try {
       channelElement = document.findAllElements('channel').first;
@@ -26,10 +30,16 @@ class RssFeed {
       author: findElementOrNull(channelElement, 'author')?.innerText,
       description: findElementOrNull(channelElement, 'description')?.innerText,
       link: findElementOrNull(channelElement, 'link')?.innerText,
-      items: channelElement.findElements('item').map((element) => RssItem.parse(element)).toList(),
+      items: channelElement
+          .findElements('item')
+          .map((element) => RssItem.parse(element))
+          .toList(),
       image: RssImage.parse(findElementOrNull(channelElement, 'image')),
       cloud: RssCloud.parse(findElementOrNull(channelElement, 'cloud')),
-      categories: channelElement.findElements('category').map((element) => RssCategory.parse(element)).toList(),
+      categories: channelElement
+          .findElements('category')
+          .map((element) => RssCategory.parse(element))
+          .toList(),
       skipDays: findElementOrNull(channelElement, 'skipDays')
               ?.findAllElements('day')
               .map((element) => element.innerText)
@@ -40,12 +50,14 @@ class RssFeed {
               .map((element) => int.tryParse(element.innerText) ?? 0)
               .toList() ??
           <int>[],
-      lastBuildDate: findElementOrNull(channelElement, 'lastBuildDate')?.innerText,
+      lastBuildDate:
+          findElementOrNull(channelElement, 'lastBuildDate')?.innerText,
       language: findElementOrNull(channelElement, 'language')?.innerText,
       generator: findElementOrNull(channelElement, 'generator')?.innerText,
       copyright: findElementOrNull(channelElement, 'copyright')?.innerText,
       docs: findElementOrNull(channelElement, 'docs')?.innerText,
-      managingEditor: findElementOrNull(channelElement, 'managingEditor')?.innerText,
+      managingEditor:
+          findElementOrNull(channelElement, 'managingEditor')?.innerText,
       rating: findElementOrNull(channelElement, 'rating')?.innerText,
       webMaster: findElementOrNull(channelElement, 'webMaster')?.innerText,
       ttl: int.tryParse(

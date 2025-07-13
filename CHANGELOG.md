@@ -1,4 +1,10 @@
 # Changelog
+## [NOT RELEASED]
+ * Easing the dependency on `intl` package.
+ * Add `WebFeed.fromXmlDocument` method to reuse the parsed XML document.
+ * Add `<feed>.parseFromXml` methods to parse the XML document.
+ * **Added FeedParser union type**: New helper for parsing RSS/Atom feeds with union types (RSS1, RSS2, Atom, Unknown) and Dart 3 pattern matching support.
+ 
 ## [3.0.3] - April, 2024
  * Added partial serialization support for RSS 1.0 and RSS 2.0 feeds. We'll fill out the rest of the serialization over time.
 

@@ -24,6 +24,74 @@ var atomFeed = new AtomFeed.parse(xmlString); // for parsing Atom feed
 var rss1Feed = new Rss1Feed.parse(xmlString); // for parsing RSS 1.0 feed
 ```
 
+### Reuse the parsed XML document
+For better performance when dealing with large XML documents, you can parse the XML document once and reuse it:
+
+```dart
+import 'package:xml/xml.dart';
+
+// Parse XML once
+final document = XmlDocument.parse(xmlString);
+
+// Use the parsed document for different parsers
+final rssFeed = RssFeed.parseFromXml(document);
+final atomFeed = AtomFeed.parseFromXml(document);
+final rss1Feed = Rss1Feed.parseFromXml(document);
+
+// Or use the unified WebFeed parser
+final webFeed = WebFeed.fromXmlDocument(document);
+```
+
+### Unified Feed Parsing & Pattern Matching (Dart 3)
+
+For advanced use cases, you can use the new `FeedParser` helper to parse any feed (RSS 1.0, RSS 2.0, Atom, or unknown) and leverage Dart 3's pattern matching and exhaustive handling:
+
+```dart
+import 'package:dart_rss/util/feed_parser.dart';
+
+final result = FeedParser.fromXmlString(xmlString);
+
+switch (result) {
+  case Rss1ParseResult(feed: final feed):
+    print('RSS 1.0: \\${feed.title}');
+  case Rss2ParseResult(feed: final feed):
+    print('RSS 2.0: \\${feed.title}');
+  case AtomParseResult(feed: final feed):
+    print('Atom: \\${feed.title}');
+  case UnknownParseResult(error: final error):
+    print('Error: \\${error.reason}');
+}
+```
+
+Or use the `when` method for a Freezed-style API:
+
+```dart
+final message = result.when(
+  rss1: (feed) => 'RSS 1.0: \\${feed.title}',
+  rss2: (feed) => 'RSS 2.0: \\${feed.title}',
+  atom: (feed) => 'Atom: \\${feed.title}',
+  unknown: (error) => 'Error: \\${error.reason}',
+);
+print(message);
+```
+
+#### Detailed Error Handling
+
+If parsing fails, you get a `ParseError` with rich details:
+
+```dart
+if (result.isUnknown()) {
+  final error = result.parseError!;
+  print('Reason: \\${error.reason}');
+  print('HTTP Status: \\${error.httpStatusCode}');
+  print('Body: \\${error.body}');
+  print('Exception: \\${error.exception}');
+}
+```
+
+- Error types: `httpError`, `networkError`, `invalidXml`, `parsingError`, `unknownVersion`
+- All error details are available for debugging and reporting
+
 ### Preview
 
 **RSS**

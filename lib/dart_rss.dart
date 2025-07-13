@@ -29,3 +29,6 @@ export 'domain/podcast_index/rss_podcast_index_person.dart';
 export 'domain/podcast_index/rss_podcast_index_soudbite.dart';
 export 'domain/podcast_index/rss_podcast_index_transcript.dart';
 export 'domain/podcast_index/rss_podcast_live_item_images.dart';
+
+// Util
+export 'util/feed_parser.dart';

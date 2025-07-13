@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - doc/**
+    - example/**
 
 linter:
   rules:

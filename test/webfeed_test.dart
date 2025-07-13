@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:dart_rss/domain/dart_rss.dart';
+import 'package:xml/xml.dart';
 
 void main() {
   group('about WebFeed, ', () {
@@ -30,13 +31,31 @@ void main() {
       expect(version, RssVersion.atom);
     });
 
+    test('it can detect RSS version from XML document.', () {
+      final document = XmlDocument.parse(atomXmlString);
+      final version = WebFeed.detectRssVersionFromDocument(document);
+      expect(version, RssVersion.atom);
+    });
+
     test('it can detect RSS1.0 feed.', () {
       final version = WebFeed.detectRssVersion(rss1XmlString);
       expect(version, RssVersion.rss1);
     });
 
+    test('it can detect RSS1.0 feed from XML document.', () {
+      final document = XmlDocument.parse(rss1XmlString);
+      final version = WebFeed.detectRssVersionFromDocument(document);
+      expect(version, RssVersion.rss1);
+    });
+
     test('it can detect RSS2.0 feed.', () {
       final version = WebFeed.detectRssVersion(rss2XmlString);
+      expect(version, RssVersion.rss2);
+    });
+
+    test('it can detect RSS2.0 feed from XML document.', () {
+      final document = XmlDocument.parse(rss2XmlString);
+      final version = WebFeed.detectRssVersionFromDocument(document);
       expect(version, RssVersion.rss2);
     });
 
@@ -56,9 +75,43 @@ void main() {
       );
     });
 
+    test('it can parse Atom feed from XML document.', () {
+      // when
+      final document = XmlDocument.parse(atomXmlString);
+      final atomFeed = WebFeed.fromXmlDocument(document);
+
+      // then
+      expect(atomFeed.title, 'Foo bar news');
+      expect(atomFeed.description, 'This is subtitle');
+      expect(atomFeed.links.first, 'http://foo.bar.news/');
+      expect(atomFeed.items.first.title, 'Foo bar item 1');
+      expect(atomFeed.items.first.body, 'This is summary 1');
+      expect(
+        atomFeed.items.first.updated,
+        DateTime.parse('2018-04-06T13:02:47Z'),
+      );
+    });
+
     test('it can parse RSS1.0 feed.', () {
       // when
       final rss1Feed = WebFeed.fromXmlString(rss1XmlString);
+
+      // then
+      expect(rss1Feed.title, 'Meerkat');
+      expect(rss1Feed.description, 'Meerkat: An Open Wire Service');
+      expect(rss1Feed.links.first, 'http://meerkat.oreillynet.com');
+      expect(rss1Feed.items.first.title, 'XML: A Disruptive Technology');
+      expect(
+        rss1Feed.items.first.body,
+        'XML is placing increasingly heavy loads on the existing technical infrastructure of the Internet.',
+      );
+      expect(rss1Feed.items.first.updated, null);
+    });
+
+    test('it can parse RSS1.0 feed from XML document.', () {
+      // when
+      final document = XmlDocument.parse(rss1XmlString);
+      final rss1Feed = WebFeed.fromXmlDocument(document);
 
       // then
       expect(rss1Feed.title, 'Meerkat');
@@ -91,7 +144,32 @@ void main() {
         rss2Feed.items.first.body,
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
       );
-      expect(rss2Feed.items.first.updated, DateTime.parse('2018-03-26 14:00:00.000'));
+      expect(rss2Feed.items.first.updated,
+          DateTime.parse('2018-03-26 14:00:00.000'));
+    });
+
+    test('it can parse RSS2.0 feed from XML document.', () {
+      // when
+      final document = XmlDocument.parse(rss2XmlString);
+      final rss2Feed = WebFeed.fromXmlDocument(document);
+
+      // then
+      expect(rss2Feed.title, 'News - Foo bar News');
+      expect(
+        rss2Feed.description,
+        'Foo bar News and Updates feed provided by Foo bar, Inc.',
+      );
+      expect(rss2Feed.links.first, 'https://foo.bar.news/');
+      expect(
+        rss2Feed.items.first.title,
+        'The standard Lorem Ipsum passage, used since the 1500s',
+      );
+      expect(
+        rss2Feed.items.first.body,
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+      );
+      expect(rss2Feed.items.first.updated,
+          DateTime.parse('2018-03-26 14:00:00.000'));
     });
   });
 }

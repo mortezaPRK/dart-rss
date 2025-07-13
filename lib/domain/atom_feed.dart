@@ -9,6 +9,10 @@ import 'package:xml/xml.dart';
 class AtomFeed {
   factory AtomFeed.parse(String xmlString) {
     final document = XmlDocument.parse(xmlString);
+    return AtomFeed.parseFromXml(document);
+  }
+
+  factory AtomFeed.parseFromXml(XmlDocument document) {
     XmlElement feedElement;
     try {
       feedElement = document.findElements('feed').first;
@@ -20,12 +24,28 @@ class AtomFeed {
       id: findElementOrNull(feedElement, 'id')?.innerText,
       title: findElementOrNull(feedElement, 'title')?.innerText,
       updated: findElementOrNull(feedElement, 'updated')?.innerText,
-      items: feedElement.findElements('entry').map((element) => AtomItem.parse(element)).toList(),
-      links: feedElement.findElements('link').map((element) => AtomLink.parse(element)).toList(),
-      authors: feedElement.findElements('author').map((element) => AtomPerson.parse(element)).toList(),
-      contributors: feedElement.findElements('contributor').map((element) => AtomPerson.parse(element)).toList(),
-      categories: feedElement.findElements('category').map((element) => AtomCategory.parse(element)).toList(),
-      generator: AtomGenerator.parse(findElementOrNull(feedElement, 'generator')),
+      items: feedElement
+          .findElements('entry')
+          .map((element) => AtomItem.parse(element))
+          .toList(),
+      links: feedElement
+          .findElements('link')
+          .map((element) => AtomLink.parse(element))
+          .toList(),
+      authors: feedElement
+          .findElements('author')
+          .map((element) => AtomPerson.parse(element))
+          .toList(),
+      contributors: feedElement
+          .findElements('contributor')
+          .map((element) => AtomPerson.parse(element))
+          .toList(),
+      categories: feedElement
+          .findElements('category')
+          .map((element) => AtomCategory.parse(element))
+          .toList(),
+      generator:
+          AtomGenerator.parse(findElementOrNull(feedElement, 'generator')),
       icon: findElementOrNull(feedElement, 'icon')?.innerText,
       logo: findElementOrNull(feedElement, 'logo')?.innerText,
       rights: findElementOrNull(feedElement, 'rights')?.innerText,

@@ -8,9 +8,10 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  xml: ^6.3.0
-  http: ^1.1.2
-  intl: ^0.20.2
+  xml: '>=6.2.0 <7.0.0'
+  http: '>=1.1.0 <2.0.0'
+  # 0.18.0 is the first version with full Dart 3.0.0 compatibility
+  intl: '>=0.18.0 <0.21.0'
 
 dev_dependencies:
   test: ^1.16.4
