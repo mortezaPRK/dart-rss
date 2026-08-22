@@ -1,5 +1,4 @@
 import 'package:dart_rss/dart_rss.dart';
-import 'package:dart_rss/util/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import 'package:xml/xml.dart';
