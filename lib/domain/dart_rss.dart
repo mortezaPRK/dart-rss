@@ -63,6 +63,7 @@ class WebFeed {
       items: rss1feed.items
           .map(
             (item) => WebFeedItem(
+              id: item.dc?.identifier ?? item.link,
               title: item.title ?? item.dc?.title ?? '',
               body: item.description ?? item.dc?.description ?? '',
               updated: SafeParseDateTime.safeParse(item.dc?.date),
@@ -82,6 +83,7 @@ class WebFeed {
       items: rssFeed.items
           .map(
             (item) => WebFeedItem(
+              id: item.guid ?? item.link,
               title: item.title ?? item.dc?.title ?? '',
               body: item.description ?? item.dc?.description ?? '',
               updated: SafeParseDateTime.safeParse(item.pubDate) ??
@@ -102,6 +104,7 @@ class WebFeed {
       items: atomFeed.items
           .map(
             (item) => WebFeedItem(
+              id: item.id ?? item.links.firstOrNull?.href,
               title: item.title ?? '',
               body: item.summary ?? item.content ?? '',
               updated: SafeParseDateTime.safeParse(item.updated) ??
@@ -178,12 +181,14 @@ class WebFeed {
 
 class WebFeedItem {
   const WebFeedItem({
+    this.id,
     this.title = '',
     this.body = '',
     this.links = const <String>[],
     this.updated,
   });
 
+  final String? id;
   final String title;
   final String body;
   final List<String?> links;
