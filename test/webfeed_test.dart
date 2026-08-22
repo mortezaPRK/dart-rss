@@ -137,6 +137,7 @@ void main() {
       );
       expect(rss2Feed.links.first, 'https://foo.bar.news/');
       expect(rss2Feed.items.first.id, 'https://foo.bar.news/1?guid');
+      expect(rss2Feed.items.first.url, 'https://foo.bar.news/1');
       expect(
         rss2Feed.items.first.title,
         'The standard Lorem Ipsum passage, used since the 1500s',
