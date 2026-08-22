@@ -12,11 +12,14 @@ void main() {
     });
 
     test('parses American-English-Format', () {
-      final date = SafeParseDateTime.safeParse('Tue, 02 Jul 2019 16:47:24 +0000')!;
+      final date = SafeParseDateTime.safeParse(
+        'Tue, 02 Jul 2019 16:47:24 +0200',
+      )!;
 
       expect(date.year, 2019);
       expect(date.month, 7);
       expect(date.day, 2);
+      expect(date.toUtc(), DateTime.utc(2019, 7, 2, 14, 47, 24));
     });
 
     test('returns null for incorrect dates', () {

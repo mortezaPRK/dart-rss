@@ -1,5 +1,4 @@
 import 'package:dart_rss/dart_rss.dart';
-import 'package:dart_rss/util/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import 'package:xml/xml.dart';
@@ -64,6 +63,8 @@ class WebFeed {
       items: rss1feed.items
           .map(
             (item) => WebFeedItem(
+              id: item.dc?.identifier ?? item.link,
+              url: item.link,
               title: item.title ?? item.dc?.title ?? '',
               body: item.description ?? item.dc?.description ?? '',
               updated: SafeParseDateTime.safeParse(item.dc?.date),
@@ -83,6 +84,8 @@ class WebFeed {
       items: rssFeed.items
           .map(
             (item) => WebFeedItem(
+              id: item.guid ?? item.link,
+              url: item.link,
               title: item.title ?? item.dc?.title ?? '',
               body: item.description ?? item.dc?.description ?? '',
               updated: SafeParseDateTime.safeParse(item.pubDate) ??
@@ -103,6 +106,8 @@ class WebFeed {
       items: atomFeed.items
           .map(
             (item) => WebFeedItem(
+              id: item.id ?? item.links.firstOrNull?.href,
+              url: _atomItemUrl(item),
               title: item.title ?? '',
               body: item.summary ?? item.content ?? '',
               updated: SafeParseDateTime.safeParse(item.updated) ??
@@ -179,16 +184,27 @@ class WebFeed {
 
 class WebFeedItem {
   const WebFeedItem({
+    this.id,
+    this.url,
     this.title = '',
     this.body = '',
     this.links = const <String>[],
     this.updated,
   });
 
+  final String? id;
+  final String? url;
   final String title;
   final String body;
   final List<String?> links;
   final DateTime? updated;
+}
+
+String? _atomItemUrl(AtomItem item) {
+  for (final link in item.links) {
+    if (link.rel == null || link.rel == 'alternate') return link.href;
+  }
+  return item.links.firstOrNull?.href;
 }
 
 enum RssVersion {
