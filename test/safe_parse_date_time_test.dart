@@ -22,6 +22,14 @@ void main() {
       expect(date.toUtc(), DateTime.utc(2019, 7, 2, 14, 47, 24));
     });
 
+    test('parses negative RFC 822 numeric timezone', () {
+      final date = SafeParseDateTime.safeParse(
+        'Tue, 02 Jul 2019 16:47:24 -0230',
+      )!;
+
+      expect(date, DateTime.utc(2019, 7, 2, 19, 17, 24));
+    });
+
     test('returns null for incorrect dates', () {
       final date = SafeParseDateTime.safeParse('Tue 12');
       expect(date, null);

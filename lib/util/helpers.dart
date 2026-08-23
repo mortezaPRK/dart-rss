@@ -5,16 +5,13 @@ import 'package:xml/xml.dart';
 
 const trueValues = {'yes', 'true'};
 
-const dateFormatPatterns = [
+final _rfc822DateFormat = DateFormat('EEE, d MMM yyyy HH:mm:ss');
+final _rfc822NamedTimezoneDateFormat = DateFormat(
   'EEE, d MMM yyyy HH:mm:ss Z',
-];
-
-final parsers = [
-  DateTime.parse,
-  ...dateFormatPatterns
-      .map((pattern) => DateFormat(pattern))
-      .map((parser) => parser.parse),
-];
+);
+final _rfc822NumericTimezone = RegExp(
+  r'^(.*\d)\s+([+-])(\d{2})(\d{2})$',
+);
 
 XmlElement? findElementOrNull(XmlElement element, String name,
     {String? namespace}) {
@@ -56,13 +53,32 @@ extension SafeParseDateTime on DateTime {
       return null;
     }
 
-    for (final parser in parsers) {
-      try {
-        return parser(trimmedDate);
-      } catch (_) {}
+    final isoDate = DateTime.tryParse(trimmedDate);
+    if (isoDate != null) {
+      return isoDate;
     }
 
-    return null;
+    final rfc822Match = _rfc822NumericTimezone.firstMatch(trimmedDate);
+    if (rfc822Match != null) {
+      try {
+        final wallClock = _rfc822DateFormat.parseUtc(rfc822Match.group(1)!);
+        final offset = Duration(
+          hours: int.parse(rfc822Match.group(3)!),
+          minutes: int.parse(rfc822Match.group(4)!),
+        );
+        return rfc822Match.group(2) == '+'
+            ? wallClock.subtract(offset)
+            : wallClock.add(offset);
+      } on FormatException {
+        return null;
+      }
+    }
+
+    try {
+      return _rfc822NamedTimezoneDateFormat.parse(trimmedDate);
+    } on FormatException {
+      return null;
+    }
   }
 }
 
